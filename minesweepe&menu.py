@@ -3,13 +3,11 @@ import sys
 import os
 import random
 
-
 # Constants
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 GRID_SIZE = 50
 NUM_MINES = 10
-
 
 # Colors
 WHITE = (255, 255, 255)
@@ -17,50 +15,48 @@ BLACK = (0, 0, 0)
 PINK = (248, 200, 220)
 RED = (255, 0, 0)  # Color for the game over message
 
-
 # Initialize Pygame
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Game Menu")
 
-pygame.mixer.init()
-
 # Load and play music in a loop
-
+pygame.mixer.init()
 
 font = pygame.font.Font(None, 36)
 # Load images
 image_folder = "C:\\Users\\XxCri\\PycharmProjects\\cis350\\assets\\images"
 
-
 original_mine_img = pygame.image.load(os.path.join(image_folder, 'mine.jpg'))
 original_tile_img = pygame.image.load(os.path.join(image_folder, 'tile.jpg'))
 
-
 mine_img = pygame.transform.scale(original_mine_img, (50, 50))
 tile_img = pygame.transform.scale(original_tile_img, (50, 50))
-
 
 # Initialize the grid
 grid = [[0 for _ in range(9)] for _ in range(9)]
 revealed = [[False for _ in range(9)] for _ in range(9)]
 mines = set()
 
+
 def minesweeper_menu():
     while True:
         screen.fill(BLACK)
-        y_offset = 100
+
         options = [
             ("Start Minesweeper", run_minesweeper),
             ("Settings", None),  # For future implementation
             ("Exit to Main Menu", main_menu)
         ]
 
+        total_height = (50 + 10) * len(options) - 10  # Calculate the total height of all buttons
+        y_offset = (SCREEN_HEIGHT - total_height) // 2  # Start drawing buttons from this vertical position
+
         button_height = 50
         rects = []
         for option_name, option_function in options:
             text = font.render(option_name, True, WHITE)
-            text_rect = text.get_rect(center=(SCREEN_WIDTH / 2, y_offset))
+            text_rect = text.get_rect(center=(SCREEN_WIDTH / 2, y_offset + button_height / 2))
             button_rect = pygame.Rect(text_rect.left - 10, text_rect.top - 5, text_rect.width + 20, button_height)
             pygame.draw.rect(screen, PINK, button_rect)  # Draw the button
             screen.blit(text, text_rect)  # Draw the text on the button
@@ -85,7 +81,6 @@ GRID_HEIGHT = len(grid) * GRID_SIZE
 GRID_START_X = (SCREEN_WIDTH - GRID_WIDTH) // 2
 GRID_START_Y = (SCREEN_HEIGHT - GRID_HEIGHT) // 2
 
-
 #minesweeper functions
 def generate_mines():
    global mines
@@ -96,7 +91,6 @@ def generate_mines():
                grid[y][x] = -1
                mines.add((x, y))
                update_adjacent_cells(x, y)
-
 
 def handle_tile_click(grid_x, grid_y):
     """
@@ -109,7 +103,6 @@ def handle_tile_click(grid_x, grid_y):
     Returns:
     - True if the game is over (a mine was clicked), False otherwise.
     """
-
     # If the cell contains a mine
     if grid[grid_y][grid_x] == -1:
         return True  # Game is over because a mine was clicked
@@ -119,49 +112,33 @@ def handle_tile_click(grid_x, grid_y):
 
     return game_over
 
-
 def update_adjacent_cells(x, y):
    for i in range(max(0, y - 1), min(len(grid), y + 2)):
        for j in range(max(0, x - 1), min(len(grid[0]), x + 2)):
            if grid[i][j] != -1:
                grid[i][j] += 1
 
-
-
-
 def reveal_cell(x, y):
    if not (0 <= x < len(grid[0]) and 0 <= y < len(grid)):
        return False
 
-
    if revealed[y][x]:
        return False
 
-
    revealed[y][x] = True
-
 
    if grid[y][x] == 0:
        for i in range(max(0, y - 1), min(len(grid), y + 2)):
            for j in range(max(0, x - 1), min(len(grid[0]), x + 2)):
                reveal_cell(j, i)
 
-
    return grid[y][x] != -1
-
-
-
-
-
 
 def display_game_over_message():
    font = pygame.font.Font(None, 48)
    text = font.render("Game Over - You hit a mine!", True, RED)
    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
    screen.blit(text, text_rect)
-
-
-
 
 def draw_grid():
     for y in range(len(grid)):
@@ -189,56 +166,51 @@ def draw_grid():
             screen.blit(mine_img, mine_rect.topleft)
         display_game_over_message()
 
-
-
-
-
 game_over = False  # Flag to track if the game is over
 generate_mines()
 
-
 # Main game loop
 def run_minesweeper():
-   pygame.mixer.music.load("C:\\Users\\XxCri\\PycharmProjects\\cis350\\assets\\sounds\\Gameplay.mp3")
-   pygame.mixer.music.play(-1)
-   global grid, revealed, mines, game_over
-   grid = [[0 for _ in range(9)] for _ in range(9)]
-   revealed = [[False for _ in range(9)] for _ in range(9)]
-   mines = set()
-   game_over = False
-   generate_mines()
+    pygame.mixer.music.load("C:\\Users\\XxCri\\PycharmProjects\\cis350\\assets\\sounds\\Gameplay.mp3")
+    pygame.mixer.music.play(-1)
+    global grid, revealed, mines, game_over
+    grid = [[0 for _ in range(9)] for _ in range(9)]
+    revealed = [[False for _ in range(9)] for _ in range(9)]
+    mines = set()
+    game_over = False
+    generate_mines()
 
-   while True:
-       redraw_screen = False  # A flag to determine if the screen should be updated
+    #cooldown variable so it doesnt count menu click towards game
+    cooldown_duration = 500
+    start_time = pygame.time.get_ticks()
 
-       for event in pygame.event.get():
-           if event.type == pygame.QUIT:
-               pygame.quit()
-               sys.exit()
-           elif event.type == pygame.MOUSEBUTTONDOWN:
-               mouse_x, mouse_y = pygame.mouse.get_pos()
+    while True:
+        elapsed_time = pygame.time.get_ticks() - start_time  # Calculate the elapsed time
 
-               # Adjusted grid calculations
-               grid_x = (mouse_x - GRID_START_X) // GRID_SIZE
-               grid_y = (mouse_y - GRID_START_Y) // GRID_SIZE
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN and elapsed_time > cooldown_duration:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
 
-               if 0 <= grid_x < len(grid[0]) and 0 <= grid_y < len(grid):
-                   game_over = handle_tile_click(grid_x, grid_y)
-                   redraw_screen = True  # Set the flag to redraw the screen later
+                # Adjusted grid calculations
+                grid_x = (mouse_x - GRID_START_X) // GRID_SIZE
+                grid_y = (mouse_y - GRID_START_Y) // GRID_SIZE
 
-       # Only redraw if necessary
-       if redraw_screen:
-           screen.fill(BLACK)
-           draw_grid()
-           if game_over:
-               display_game_over_message()
+                if 0 <= grid_x < len(grid[0]) and 0 <= grid_y < len(grid):
+                    game_over = handle_tile_click(grid_x, grid_y)
 
-           pygame.display.flip()
+        screen.fill(BLACK)
+        draw_grid()
+        if game_over:
+            display_game_over_message()
 
+        pygame.display.flip()
 
 # Function to display the menu
 def display_menu(screen, screen_width, screen_height):
-   # Load the background image (assuming it's a JPEG image)
+   # Load the background image
    background_image = pygame.image.load("C:\\Users\\Xxcri\\PycharmProjects\\cis350\\assets\\images\\bg.jpg")
    background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
    # Blit the background image to the screen
