@@ -127,20 +127,34 @@ while running:
                         running = False
 
             elif game_state == "Play": # we are in the Game Screen.
-                ...
-                # handle the game specific input (KEYBOARD INPUT) while in the game state
+                ... # handle the game specific input (KEYBOARD INPUT) while in the game state
+            elif game_state == "Settings":
+                ... # handle the settings specific input (KEYBOARD INPUT) while in the settings state.
 
         elif event.type == pygame.MOUSEBUTTONDOWN: # player hits the mouse button.
+            mouse_position = pygame.mouse.get_pos() # get position of the click of the mouse.
             if game_state == "Menu": # MENU SCREEN.
-                ... # handle the menu specific input (MOUSE INPUT).
+                for i, option in enumerate(menu_options): # handle the menu specific input (MOUSE INPUT).
+                    text = menu_font.render(option,True, light_pink)
+                    option_rect = text.get_rect(center=(home_screen_width//2, (i+1)*150))
+                    if option == "Play Game" and option_rect.collidepoint(mouse_position):
+                        selected_option = 0
+                        game_state = "Play"
+                    elif option == "Settings" and option_rect.collidepoint(mouse_position):
+                        selected_option = 1
+                        game_state = "Settings"
+                    elif option == "Quit" and option_rect.collidepoint(mouse_position):
+                        selected_option = 2
+                        running = False
             elif game_state == "Play": # GAME SCREEN.
-                mouse_position = pygame.mouse.get_pos() # get position of the click of the mouse.
                 for i, card_rect in enumerate(cards):
                     if not card_up[i] and card_rect.collidepoint(mouse_position):
                     # if card is faced down and the mouse is on that card.
                         if len(selected_cards) < 2: # only possible to choose 2 cards maximum. 
                             card_up[i] = True # turn the card face up.
                             selected_cards.append(i)
+            elif game_state == "Settings": # SETTINGS SCREEN.
+                ... # handle the settings specific input (mouse input).
 
 
     # When no event occurs (when open the game):
@@ -174,6 +188,8 @@ while running:
             # get_rect creates a rectangle from the surface containing this text:
             text_rect = text.get_rect(center=(home_screen_width//2, (i+1)*150))
             home_screen.blit(text, text_rect) # this is to copy the contents from the 'text' surface into the menu_screen (screen) surface at the rectangle location('text_rect').          
+    elif game_state == "Settings":
+        ...
     pygame.display.flip()
 pygame.quit()
 
