@@ -1,9 +1,15 @@
-import pygame
+"""
+Natalie Rodriguez
+CIS 350
+Minesweeper
+
+"""
+
 import sys
 import os
 import random
+import pygame
 
-# Constants
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 GRID_SIZE = 50
@@ -13,22 +19,20 @@ NUM_MINES = 10
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 PINK = (248, 200, 220)
-RED = (255, 0, 0)  # Color for the game over message
 
 # Initialize Pygame
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Game Menu")
+pygame.display.set_caption("Minesweeper")
+font = pygame.font.Font(None, 36)
 
 # Load and play music in a loop
-pygame.mixer.init()
+# pygame.mixer.init()
 
-font = pygame.font.Font(None, 36)
 # Load images
-image_folder = "C:\\Users\\XxCri\\PycharmProjects\\cis350\\assets\\images"
 
-original_mine_img = pygame.image.load(os.path.join(image_folder, 'mine.jpg'))
-original_tile_img = pygame.image.load(os.path.join(image_folder, 'tile.jpg'))
+original_mine_img = pygame.image.load("C:\\Users\\munso\\Downloads\\mine.jpg")
+original_tile_img = pygame.image.load("C:\\Users\\munso\\Downloads\\tile.jpg")
 
 mine_img = pygame.transform.scale(original_mine_img, (50, 50))
 tile_img = pygame.transform.scale(original_tile_img, (50, 50))
@@ -38,15 +42,21 @@ grid = [[0 for _ in range(9)] for _ in range(9)]
 revealed = [[False for _ in range(9)] for _ in range(9)]
 mines = set()
 
+running_in_minesweeper_menu = True
+
+def exit_to_main_menu():
+    global running_in_minesweeper_menu
+    running_in_minesweeper_menu = False
 
 def minesweeper_menu():
-    while True:
+    global running_in_minesweeper_menu
+    while running_in_minesweeper_menu:
         screen.fill(BLACK)
 
         options = [
             ("Start Minesweeper", run_minesweeper),
             ("Settings", None),  # For future implementation
-            ("Exit to Main Menu", main_menu)
+            ("Exit to Main Menu", exit_to_main_menu)
         ]
 
         total_height = (50 + 10) * len(options) - 10  # Calculate the total height of all buttons
@@ -81,7 +91,6 @@ GRID_HEIGHT = len(grid) * GRID_SIZE
 GRID_START_X = (SCREEN_WIDTH - GRID_WIDTH) // 2
 GRID_START_Y = (SCREEN_HEIGHT - GRID_HEIGHT) // 2
 
-#minesweeper functions
 def generate_mines():
    global mines
    mines = set()
@@ -134,11 +143,12 @@ def reveal_cell(x, y):
 
    return grid[y][x] != -1
 
-def display_game_over_message():
-   font = pygame.font.Font(None, 48)
-   text = font.render("Game Over - You hit a mine!", True, RED)
-   text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-   screen.blit(text, text_rect)
+def has_player_won():
+    for y in range(len(grid)):
+        for x in range(len(grid[0])):
+            if not revealed[y][x] and grid[y][x] != -1:  # If a non-mine tile is not revealed
+                return False  # Player hasn't won yet
+    return True
 
 def draw_grid():
     for y in range(len(grid)):
@@ -164,15 +174,41 @@ def draw_grid():
         for mine_x, mine_y in mines:
             mine_rect = pygame.Rect(GRID_START_X + mine_x * GRID_SIZE, GRID_START_Y + mine_y * GRID_SIZE, GRID_SIZE, GRID_SIZE)
             screen.blit(mine_img, mine_rect.topleft)
-        display_game_over_message()
 
-game_over = False  # Flag to track if the game is over
+
+game_over = False  # Track if the game is over
 generate_mines()
 
-# Main game loop
+def display_end_message(message):
+    font = pygame.font.Font(None, 48)
+
+    # Calculate the width and height of the pink rectangle
+    rect_width = SCREEN_WIDTH // 2
+    rect_height = 150
+
+    rect_x = (SCREEN_WIDTH - rect_width) // 2
+    rect_y = (SCREEN_HEIGHT - rect_height) // 2
+
+    # Draw the pink rectangle
+    pygame.draw.rect(screen, PINK, (rect_x, rect_y, rect_width, rect_height))
+
+    # Render and blit the message
+    text = font.render(message, True, WHITE)
+    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50))
+    screen.blit(text, text_rect)
+
+    options = [("Replay", run_minesweeper), ("Back to Menu", minesweeper_menu)]
+    y_offset = SCREEN_HEIGHT // 2
+    for option_text, option_function in options:
+        text = font.render(option_text, True, WHITE)
+        text_rect = text.get_rect(center=(SCREEN_WIDTH / 2, y_offset))
+        screen.blit(text, text_rect)
+        y_offset += 50
+
 def run_minesweeper():
-    pygame.mixer.music.load("C:\\Users\\XxCri\\PycharmProjects\\cis350\\assets\\sounds\\Gameplay.mp3")
-    pygame.mixer.music.play(-1)
+    # pygame.mixer.music.load("Gameplay.mp3")
+    # pygame.mixer.music.set_volume(0.3)
+    # pygame.mixer.music.play(-1)
     global grid, revealed, mines, game_over
     grid = [[0 for _ in range(9)] for _ in range(9)]
     revealed = [[False for _ in range(9)] for _ in range(9)]
@@ -180,80 +216,60 @@ def run_minesweeper():
     game_over = False
     generate_mines()
 
-    #cooldown variable so it doesnt count menu click towards game
+    # cooldown variable so it doesn't count menu click towards the game
     cooldown_duration = 500
     start_time = pygame.time.get_ticks()
 
+    end_game = False
     while True:
         elapsed_time = pygame.time.get_ticks() - start_time  # Calculate the elapsed time
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN and elapsed_time > cooldown_duration:
-                mouse_x, mouse_y = pygame.mouse.get_pos()
+        if end_game:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
 
-                # Adjusted grid calculations
-                grid_x = (mouse_x - GRID_START_X) // GRID_SIZE
-                grid_y = (mouse_y - GRID_START_Y) // GRID_SIZE
+                    # Check if "Replay" was clicked
+                    if (SCREEN_WIDTH // 2 - 100 <= mouse_x <= SCREEN_WIDTH // 2 + 100) and (SCREEN_HEIGHT // 2 <= mouse_y <= SCREEN_HEIGHT // 2 + 30):
+                        return run_minesweeper()
 
-                if 0 <= grid_x < len(grid[0]) and 0 <= grid_y < len(grid):
-                    game_over = handle_tile_click(grid_x, grid_y)
+                    # Check if "Back to Menu" was clicked
+                    if (SCREEN_WIDTH // 2 - 100 <= mouse_x <= SCREEN_WIDTH // 2 + 100) and (SCREEN_HEIGHT // 2 + 50 <= mouse_y <= SCREEN_HEIGHT // 2 + 80):
+                        return minesweeper_menu()
 
-        screen.fill(BLACK)
-        draw_grid()
-        if game_over:
-            display_game_over_message()
+        else:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN and elapsed_time > cooldown_duration:
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    grid_x = (mouse_x - GRID_START_X) // GRID_SIZE
+                    grid_y = (mouse_y - GRID_START_Y) // GRID_SIZE
 
-        pygame.display.flip()
+                    if 0 <= grid_x < len(grid[0]) and 0 <= grid_y < len(grid):
+                        game_over = handle_tile_click(grid_x, grid_y)
+                        if game_over:
+                            end_game = True
+                            screen.fill(BLACK)
+                            draw_grid()
+                            display_end_message("Game Over!")
+                            pygame.display.flip()
 
-# Function to display the menu
-def display_menu(screen, screen_width, screen_height):
-   # Load the background image
-   background_image = pygame.image.load("C:\\Users\\Xxcri\\PycharmProjects\\cis350\\assets\\images\\bg.jpg")
-   background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
-   # Blit the background image to the screen
-   screen.blit(background_image, (0, 0))
+                        elif has_player_won():
+                            end_game = True
+                            screen.fill(BLACK)
+                            draw_grid()
+                            display_end_message("You've won!")
+                            pygame.display.flip()
 
-# Main menu loop
-def main_menu():
-    while True:
-        screen.fill(BLACK)
-        display_menu(screen, SCREEN_WIDTH, SCREEN_HEIGHT) # Display the menu background
+        if not end_game:
+            screen.fill(BLACK)
+            draw_grid()
+            pygame.display.flip()
 
-        y_offset = 100
-        game_buttons = [
-            ("Play Minesweeper", minesweeper_menu),
-            # Add other games here
-            # ("Play Game 2", game2_function),
-            # ("Play Game 3", game3_function)
-        ]
-
-        rects = []  # To store button rectangles and their corresponding functions
-        for game_name, game_function in game_buttons:
-            text = font.render(game_name, True, WHITE)
-            text_rect = text.get_rect(center=(SCREEN_WIDTH / 2, y_offset))
-            button_rect = pygame.Rect(text_rect.left - 10, text_rect.top - 5, text_rect.width + 20, 50)
-            pygame.draw.rect(screen, PINK, button_rect)  # Draw the button
-            screen.blit(text, text_rect)  # Draw the text on the button
-            rects.append((button_rect, game_function))
-            y_offset += 60
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-                for rect, function in rects:
-                    if rect.collidepoint(mouse_x, mouse_y) and function:
-                        function()
-
-        pygame.display.flip()
-
-# Run the main menu
-if __name__ == "__main__":
-   screen_width, screen_height = 800, 600
-   screen = pygame.display.set_mode((screen_width, screen_height))
-   main_menu()
+        # if game_over or has_player_won():
+            # pygame.mixer.music.stop()
