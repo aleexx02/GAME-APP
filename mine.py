@@ -27,7 +27,7 @@ pygame.display.set_caption("Minesweeper")
 font = pygame.font.Font(None, 36)
 
 # Load and play music in a loop
-pygame.mixer.init()
+# pygame.mixer.init()
 
 # Load images
 
@@ -206,9 +206,9 @@ def display_end_message(message):
         y_offset += 50
 
 def run_minesweeper():
-    pygame.mixer.music.load("Gameplay.mp3")
-    pygame.mixer.music.set_volume(0.3)
-    pygame.mixer.music.play(-1)
+    # pygame.mixer.music.load("Gameplay.mp3")
+    # pygame.mixer.music.set_volume(0.3)
+    # pygame.mixer.music.play(-1)
     global grid, revealed, mines, game_over
     grid = [[0 for _ in range(9)] for _ in range(9)]
     revealed = [[False for _ in range(9)] for _ in range(9)]
@@ -271,5 +271,5 @@ def run_minesweeper():
             draw_grid()
             pygame.display.flip()
 
-        if game_over or has_player_won():
-            pygame.mixer.music.stop()
+        # if game_over or has_player_won():
+            # pygame.mixer.music.stop()
