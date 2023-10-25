@@ -182,28 +182,3 @@ def complete_game(window, time):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return
-
-# initialze and run window       
-def main():
-    pygame.init()
-    window = pygame.display.set_mode(window_size)
-    pygame.display.set_caption("SUDOKU")
-    begin = pygame.image.load("C:\\Users\\munso\\Downloads\\main_screen.png").convert()
-    window.blit(begin, (0, 0))
-    pygame.display.update()
-    myfont = pygame.font.SysFont('Calibri', 35)
-
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-                pos = pygame.mouse.get_pos()
-                if 305 < pos[0] < 492 and 297 < pos[1] < 358: # play sudoku
-                    window.fill(background_color)
-                    sudoku_game(window)
-                    pygame.display.flip()
-                    return
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                return
-        
-main()
