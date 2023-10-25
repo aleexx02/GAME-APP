@@ -1,14 +1,17 @@
 import pygame
 import sudoku_game as s
-import minesweeper as ms
-import memory_match as mm
 import GUI as cw
+import minesweeper as m
+import memory_match as mc
+
 
 window_size = (800, 600)
 background_color = (148,133,123)
+game_state = "MAIN_MENU"
+pygame.init()
+pygame.font.init()
 
 def main():
-    pygame.init()
     window = pygame.display.set_mode(window_size)
     pygame.display.set_caption("BRAIN GAMES")
     begin = pygame.image.load("C:\\Users\\munso\\CIS\\main_screen_file.png").convert()
@@ -23,12 +26,12 @@ def main():
                 if 299 < pos[0] < 501:
                     if 199 < pos[1] < 261: # play minesweeper
                         window.fill(background_color)
-                        ms.run_minesweeper()
+                        m.minesweeper_menu()
                         pygame.display.flip()
                         return
                     if 288 < pos[1] < 344: # play memory match
                         window.fill(background_color)
-                        mm.run_memory_match()
+                        mc.start_memory_game()
                         pygame.display.flip()
                         return
                     if 375 < pos[1] < 434:
@@ -38,7 +41,7 @@ def main():
                         return
                     if 466 < pos[1] < 522:
                         window.fill(background_color)
-                        s.sudoku_game(window)
+                        cw.run_crossword(window)
                         pygame.display.flip()
                         return
             if event.type == pygame.QUIT:
