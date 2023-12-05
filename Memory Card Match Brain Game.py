@@ -27,7 +27,7 @@ grid_height = 600
 card_back = pygame.image.load("card_back.jpg")
 selected_cards = [] # store indexes of selected cards and be able to compare them later.
 matches = 0 # will store the correct matches of the player.
-i = 0 # to keep track of game.
+x = 0 # to keep track of game.
 # Colors and Fonts:
 black = (0,0,0) # black color.
 light_pink = (255, 182, 193)
@@ -332,6 +332,7 @@ while running:
                         game_state = "Restart Game"
                     elif setting == "Select Level" and setting_rect.collidepoint(mouse_position):
                         selected_setting = 1
+                        x = 1
                         game_state = "Play"
                     elif setting == "Game Menu" and setting_rect.collidepoint(mouse_position):
                         selected_setting = 2
@@ -349,6 +350,11 @@ while running:
         # display game settings: choose the level of the game.
         display_game_levels(home_screen, game_levels, selected_level)
     elif game_state == "Play_Easy":
+        if x == 1:
+            card_images1 = cards_game(3,4,6) # rows = 3; columns = 4; N = 6 (12 cards) -> Easy Level.
+            cards1 = obtain_pos(3,4,card_images1)
+            card_up1 = [False] * len(card_images1) # all cards are face down at first.
+            x = 0
         display_game(home_screen, 3, 4, mouse_position)
         for i, card_rect in enumerate(cards1): # if the card was selected --> need to turn it around.
             if card_up1[i]: #this means card was selected.
@@ -373,7 +379,16 @@ while running:
             text_rect = text.get_rect(center=(home_screen_width//2, home_screen_height//2))
             home_screen.blit(text, text_rect) # this is to copy the contents from the 'text' surface into the menu_screen (screen) surface at the rectangle location('text_rect').
             settings_button.draw(home_screen, mouse_position)
+            pygame.display.flip() # to update the screen.
+            pygame.time.delay(300) # so the player can see the cards. Easy Level DELAY: 400.
+
+
     elif game_state == "Play_Medium":
+        if x == 1:
+            card_images2 = cards_game(4,4,8)
+            cards2 = obtain_pos(4,4,card_images2)
+            card_up2 = [False] * len(card_images2) # all cards are face down at first.
+            x = 0
         display_game(home_screen, 4, 4, mouse_position)
         for i, card_rect in enumerate(cards2): # if the card was selected --> need to turn it around.
             if card_up2[i]: #this means card was selected.
@@ -398,7 +413,13 @@ while running:
             text_rect = text.get_rect(center=(home_screen_width//2, home_screen_height//2))
             home_screen.blit(text, text_rect) # this is to copy the contents from the 'text' surface into the menu_screen (screen) surface at the rectangle location('text_rect').
             settings_button.draw(home_screen, mouse_position)
+ 
     elif game_state == "Play_Hard":
+        if x == 1:
+            card_images3 = cards_game(4,5,10)
+            cards3 = obtain_pos(4,5,card_images3)
+            card_up3 = [False] * len(card_images3) # all cards are face down at first.
+            x = 0
         display_game(home_screen, 4, 5, mouse_position)
         for i, card_rect in enumerate(cards3): # if the card was selected --> need to turn it around.
             if card_up3[i]: #this means card was selected.
@@ -423,13 +444,14 @@ while running:
             text_rect = text.get_rect(center=(home_screen_width//2, home_screen_height//2))
             home_screen.blit(text, text_rect) # this is to copy the contents from the 'text' surface into the menu_screen (screen) surface at the rectangle location('text_rect').
             settings_button.draw(home_screen, mouse_position)
+
     elif game_state == "Settings":
         display_settings(home_screen, settings, selected_setting)
     
     elif game_state == "Restart Game":
         home_screen.fill(light_pink)
         matches = 0
-        i = 1
+        x = 1
         if game_level == "Easy":
             message = "Restarting Easy Level..."
             text = font1.render(message,True, black)
@@ -437,6 +459,10 @@ while running:
             home_screen.blit(text, text_rect) 
             pygame.display.flip() 
             pygame.time.delay(1500)
+            card_images1 = cards_game(3,4,6) # rows = 3; columns = 4; N = 6 (12 cards) -> Easy Level.
+            cards1 = obtain_pos(3,4,card_images1)
+            card_up1 = [False] * len(card_images1) # all cards are face down at first.
+            x = 0 
             game_state = "Play_Easy"
         elif game_level == "Medium":
             message = "Restarting Medium Level..."
@@ -445,6 +471,10 @@ while running:
             home_screen.blit(text, text_rect) 
             pygame.display.flip() 
             pygame.time.delay(1500)
+            card_images2 = cards_game(4,4,8)
+            cards2 = obtain_pos(4,4,card_images2)
+            card_up2 = [False] * len(card_images2) # all cards are face down at first.
+            x = 0 
             game_state = "Play_Medium"
         elif game_level == "Hard":
             message = "Restarting Hard Level..."
@@ -453,20 +483,16 @@ while running:
             home_screen.blit(text, text_rect) 
             pygame.display.flip() 
             pygame.time.delay(1500)
+            card_images3 = cards_game(4,5,10)
+            cards3 = obtain_pos(4,5,card_images3)
+            card_up3 = [False] * len(card_images3) # all cards are face down at first.
+            x = 0
             game_state = "Play_Hard"
         elif game_level == "None":
             game_state = "Play"
 
-    if i == 1: # restart the game with new cards
-        card_images1 = cards_game(3,4,6) # rows = 3; columns = 4; N = 6 (12 cards) -> Easy Level.
-        card_images2 = cards_game(4,4,8)
-        card_images3 = cards_game(4,5,10)
-        cards1 = obtain_pos(3,4,card_images1)
-        cards2 = obtain_pos(4,4,card_images2)
-        cards3 = obtain_pos(4,5,card_images3)
-        card_up1 = [False] * len(card_images1) # all cards are face down at first.
-        card_up2 = [False] * len(card_images2) # all cards are face down at first.
-        card_up3 = [False] * len(card_images3) # all cards are face down at first.
+    if x == 1: # restart the game with new cards
+        matches = 0 
 
     pygame.display.flip()
 pygame.quit()
