@@ -27,7 +27,7 @@ grid_height = 600
 card_back = pygame.image.load("card_back.jpg")
 selected_cards = [] # store indexes of selected cards and be able to compare them later.
 matches = 0 # will store the correct matches of the player.
-
+i = 0 # to keep track of game.
 # Colors and Fonts:
 black = (0,0,0) # black color.
 light_pink = (255, 182, 193)
@@ -372,7 +372,7 @@ while running:
             # get_rect creates a rectangle from the surface containing this text:
             text_rect = text.get_rect(center=(home_screen_width//2, home_screen_height//2))
             home_screen.blit(text, text_rect) # this is to copy the contents from the 'text' surface into the menu_screen (screen) surface at the rectangle location('text_rect').
-    
+            settings_button.draw(home_screen, mouse_position)
     elif game_state == "Play_Medium":
         display_game(home_screen, 4, 4, mouse_position)
         for i, card_rect in enumerate(cards2): # if the card was selected --> need to turn it around.
@@ -397,7 +397,7 @@ while running:
             # get_rect creates a rectangle from the surface containing this text:
             text_rect = text.get_rect(center=(home_screen_width//2, home_screen_height//2))
             home_screen.blit(text, text_rect) # this is to copy the contents from the 'text' surface into the menu_screen (screen) surface at the rectangle location('text_rect').
-    
+            settings_button.draw(home_screen, mouse_position)
     elif game_state == "Play_Hard":
         display_game(home_screen, 4, 5, mouse_position)
         for i, card_rect in enumerate(cards3): # if the card was selected --> need to turn it around.
@@ -422,19 +422,21 @@ while running:
             # get_rect creates a rectangle from the surface containing this text:
             text_rect = text.get_rect(center=(home_screen_width//2, home_screen_height//2))
             home_screen.blit(text, text_rect) # this is to copy the contents from the 'text' surface into the menu_screen (screen) surface at the rectangle location('text_rect').
-    
+            settings_button.draw(home_screen, mouse_position)
     elif game_state == "Settings":
         display_settings(home_screen, settings, selected_setting)
     
     elif game_state == "Restart Game":
         home_screen.fill(light_pink)
+        matches = 0
+        i = 1
         if game_level == "Easy":
             message = "Restarting Easy Level..."
             text = font1.render(message,True, black)
             text_rect = text.get_rect(center=(home_screen_width//2, home_screen_height//2))
             home_screen.blit(text, text_rect) 
             pygame.display.flip() 
-            pygame.time.delay(1500) 
+            pygame.time.delay(1500)
             game_state = "Play_Easy"
         elif game_level == "Medium":
             message = "Restarting Medium Level..."
@@ -454,6 +456,17 @@ while running:
             game_state = "Play_Hard"
         elif game_level == "None":
             game_state = "Play"
+
+    if i == 1: # restart the game with new cards
+        card_images1 = cards_game(3,4,6) # rows = 3; columns = 4; N = 6 (12 cards) -> Easy Level.
+        card_images2 = cards_game(4,4,8)
+        card_images3 = cards_game(4,5,10)
+        cards1 = obtain_pos(3,4,card_images1)
+        cards2 = obtain_pos(4,4,card_images2)
+        cards3 = obtain_pos(4,5,card_images3)
+        card_up1 = [False] * len(card_images1) # all cards are face down at first.
+        card_up2 = [False] * len(card_images2) # all cards are face down at first.
+        card_up3 = [False] * len(card_images3) # all cards are face down at first.
 
     pygame.display.flip()
 pygame.quit()
