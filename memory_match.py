@@ -32,6 +32,7 @@ matches = 0 # will store the correct matches of the player.
 black = (0,0,0) # black color.
 light_pink = (255, 182, 193)
 pink = (255, 20, 150)
+white = (255,255,255)
 menu_font = pygame.font.SysFont("Elephant", 43) # define the font size of menu
 game_font = pygame.font.SysFont("Californian FB", 35)
 font1 = pygame.font.SysFont("Bahnschrift", 40)
