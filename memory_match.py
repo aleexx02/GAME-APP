@@ -12,7 +12,7 @@ home_screen_height = 600
 home_screen_width = 600
 home_screen = pygame.display.set_mode((home_screen_height,home_screen_width))
 pygame.display.set_caption("Card Match Game")
-menu_options = ["Play Game", "Settings", "Quit"]
+menu_options = ["Play Game", "Settings", "Game Rules", "Quit"]
 game_levels = ["Easy", "Medium", "Hard", "Game Menu", "Exit Game"]
 settings = ["Restart Game", "Select Level", "Game Menu", "Exit Game"]
 selected_option = 0 # to keep track of the selected option of the player (MENU SCREEN).
@@ -36,8 +36,8 @@ white = (255,255,255)
 menu_font = pygame.font.SysFont("Elephant", 43) # define the font size of menu
 game_font = pygame.font.SysFont("Californian FB", 35)
 font1 = pygame.font.SysFont("Bahnschrift", 40)
-font2 = pygame.font.SysFont("Bahnschrift", 30)
-
+font2 = pygame.font.SysFont("Bahnschrift", 35)
+font3 = pygame.font.SysFont("Bahnschrift", 20)
 
 class Button_Image:
     def __init__(self, x, y, width, height, image):
@@ -76,11 +76,31 @@ def display_menu(screen,menu_options, selected_option):
         # render the text into a surface:
         text = game_font.render(option,True, black)
         # get_rect creates a rectangle from the surface containing this text:
-        text_rect = text.get_rect(center=(home_screen_width//2, (i+2)*110)) 
+        text_rect = text.get_rect(center=(home_screen_width//2, (i+2)*100)) 
         # each option written in the menu screen will be located at these center coordinates.
         if i == selected_option: # the current option selected by the player.
             pygame.draw.rect(screen, pink, text_rect, 2) #draw a rectangle surrounding the option selected by the user.
         screen.blit(text, text_rect) # this is to copy the contents from the 'text' surface into the menu_screen (screen) surface at the rectangle location('text_rect').
+
+def display_rules(screen, mouse_pos):
+    screen.fill(light_pink)
+    global settings_button
+    text = font1.render("Memory Card Match Rules:",True, pink)
+    text1 = font3.render("1. Select two cards.", True, black)
+    text2 = font3.render("2. If both cards match, keep trying for another match.", True, black)
+    text3 = font3.render("3. If both cards do not match, the cards are turned over again.", True, black)
+    text4 = font3.render("4. You win once you have matched all cards.", True, black)
+    text_rect = text.get_rect(center=(home_screen_width//2, 130))
+    text_rect1 = text1.get_rect(center=(home_screen_width//5, 210))
+    text_rect2 = text1.get_rect(center=(home_screen_width//5, 250))
+    text_rect3 = text1.get_rect(center=(home_screen_width//5, 290))
+    text_rect4 = text1.get_rect(center=(home_screen_width//5, 330))
+    screen.blit(text, text_rect)
+    screen.blit(text1, text_rect1)
+    screen.blit(text2, text_rect2)
+    screen.blit(text3, text_rect3)
+    screen.blit(text4, text_rect4)
+    settings_button.draw(screen, mouse_pos)
 
 def display_game_levels(screen, game_levels, selected_level):
     screen.fill(light_pink)
@@ -213,7 +233,9 @@ while running:
                         game_state = "Play"
                     elif selected_option == 1: # SETTINGS
                         game_state = "Settings"
-                    elif selected_option == 2: # QUIT
+                    elif selected_option == 2: # GAME RULES
+                        game_state = "Rules"
+                    elif selected_option == 3: # QUIT
                         running = False
 
             elif game_state == "Play": # we are in the Game Screen.
@@ -257,15 +279,18 @@ while running:
             if game_state == "Menu": # MENU SCREEN.
                 for i, option in enumerate(menu_options): # handle the menu specific input (MOUSE INPUT).
                     text = menu_font.render(option,True, light_pink)
-                    option_rect = text.get_rect(center=(home_screen_width//2, (i+2)*110))
+                    option_rect = text.get_rect(center=(home_screen_width//2, (i+2)*100))
                     if option == "Play Game" and option_rect.collidepoint(mouse_position):
                         selected_option = 0
                         game_state = "Play"
                     elif option == "Settings" and option_rect.collidepoint(mouse_position):
                         selected_option = 1
                         game_state = "Settings"
-                    elif option == "Quit" and option_rect.collidepoint(mouse_position):
+                    elif option == "Game Rules" and option_rect.collidepoint(mouse_position):
                         selected_option = 2
+                        game_state = "Rules"
+                    elif option == "Quit" and option_rect.collidepoint(mouse_position):
+                        selected_option = 3
                         running = False
             elif game_state == "Play": # GAME SCREEN.
                 for i, level in enumerate(game_levels): # handle the game specific input (MOUSE INPUT).
@@ -321,7 +346,9 @@ while running:
                             selected_cards.append(i)
                 if settings_button.click(mouse_position):
                     game_state = "Settings"
-
+            elif game_state == "Rules":
+                if settings_button.click(mouse_position):
+                    game_state = "Settings"
             elif game_state == "Settings": # SETTINGS SCREEN.
             # handle the settings specific input (mouse input).
                 for i, setting in enumerate(settings): # handle the menu specific input (MOUSE INPUT).
@@ -447,6 +474,8 @@ while running:
 
     elif game_state == "Settings":
         display_settings(home_screen, settings, selected_setting)
+    elif game_state == "Rules":
+        display_rules(home_screen, mouse_position)
     
     elif game_state == "Restart Game":
         home_screen.fill(light_pink)
