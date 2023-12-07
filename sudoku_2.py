@@ -90,6 +90,7 @@ class SudokuGame:
                              for x in range(len(grid))]
         print(solution)
         myfont = pygame.font.SysFont('Calibri', 35)
+        diff_font = pygame.font.SysFont('Calibri', 20)
         mistakes = 0
         # draw the lines of the board
         for i in range(0, 10):
@@ -104,6 +105,9 @@ class SudokuGame:
                 self.window, (0, 0, 0), (200 + 50*i, 50), (200 + 50*i, 500), 2)
             pygame.draw.line(
                 self.window, (0, 0, 0), (200, 50 + 50*i), (650, 50 + 50*i), 2)
+        # display difficulty level
+        diff_text = diff_font.render('Difficulty: '+ self.difficulty, True, self.original_number)
+        self.window.blit(diff_text, (27, 50))
         pygame.display.flip()
 
         # insert the numbers onto the board
