@@ -383,6 +383,7 @@ while running:
     elif game_state == "Play":
         # display game settings: choose the level of the game.
         display_game_levels(home_screen, game_levels, selected_level,font1, game_font, font2)
+        x = 1
     elif game_state == "Play_Easy":
         if x == 1:
             card_images1 = cards_game(3,4,6) # rows = 3; columns = 4; N = 6 (12 cards) -> Easy Level.
