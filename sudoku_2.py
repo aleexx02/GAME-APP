@@ -24,6 +24,8 @@ class SudokuGame:
         self.clock = pygame.time.Clock()
         self.diff = None
         self.myfont = pygame.font.SysFont('Calibri', 35, False, False)
+        self.diff_font = pygame.font.SysFont('Calibri', 20)
+
 
     def initialize_game(self):
         pygame.init()
@@ -115,6 +117,10 @@ class SudokuGame:
                              (200 + 50*i, 50), (200 + 50*i, 500), 2)
             pygame.draw.line(self.window, (0, 0, 0),
                              (200, 50 + 50*i), (650, 50 + 50*i), 2)
+        # display difficulty level
+        diff_text = diff_font.render(
+            'Difficulty: '+ self.diff, True, self.black)
+        self.window.blit(diff_text, (27, 50))
         pygame.display.flip()
 
         # insert the numbers onto the board
