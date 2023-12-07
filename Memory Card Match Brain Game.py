@@ -39,7 +39,7 @@ font1 = pygame.font.SysFont("Bahnschrift", 40)
 font2 = pygame.font.SysFont("Bahnschrift", 35)
 font3 = pygame.font.SysFont("Bahnschrift", 20)
 
-class Button_Image:
+class Button_Image: # settings button; doesn't contain text but an image.
     def __init__(self, x, y, width, height, image):
         self.rect = pygame.Rect(x, y, width, height)
         self.image = pygame.image.load(image)
@@ -64,7 +64,7 @@ settings_button = Button_Image(grid_width + 10, 20, 20, 20, "settings_button.jpg
 
 
 # Function to display the Game Menu:
-def display_menu(screen,menu_options, selected_option):
+def display_menu(screen,menu_options, selected_option, menu_font, game_font):
     screen.fill(light_pink)
     text = menu_font.render("Card Match Game",True, pink)
     # get_rect creates a rectangle from the surface containing this text:
@@ -81,8 +81,9 @@ def display_menu(screen,menu_options, selected_option):
         if i == selected_option: # the current option selected by the player.
             pygame.draw.rect(screen, pink, text_rect, 2) #draw a rectangle surrounding the option selected by the user.
         screen.blit(text, text_rect) # this is to copy the contents from the 'text' surface into the menu_screen (screen) surface at the rectangle location('text_rect').
-
-def display_rules(screen, mouse_pos):
+        
+# Function to display the game rules:
+def display_rules(screen, mouse_pos, font1, font3):
     screen.fill(light_pink)
     global settings_button
     text = font1.render("Memory Card Match Rules:",True, pink)
@@ -102,7 +103,9 @@ def display_rules(screen, mouse_pos):
     screen.blit(text4, text_rect4)
     settings_button.draw(screen, mouse_pos)
 
-def display_game_levels(screen, game_levels, selected_level):
+
+# Function to display the game levels:
+def display_game_levels(screen, game_levels, selected_level, font1, game_font, font2):
     screen.fill(light_pink)
     text = font1.render("Choose a level:",True, pink)
     # get_rect creates a rectangle from the surface containing this text:
@@ -127,7 +130,8 @@ def display_game_levels(screen, game_levels, selected_level):
                 pygame.draw.rect(screen, black, text_rect2, 2) #draw a rectangle surrounding the option selected by the user.
             screen.blit(text2, text_rect2) # this is to copy the contents from the 'text2' surface into the menu_screen (screen) surface at the rectangle location('text_rect2').
 
-def cards_game(rows, columns, N): # modifies the list card_images to store the cards of the game.
+# Function to store the card images of the game into a list:
+def cards_game(rows, columns, N) -> list: # modifies the list card_images to store the cards of the game.
     grid_size = (rows, columns)
     card_images = [] # to store the cards for the game.
     # Will start by loading the images of my N different cards.
@@ -138,13 +142,13 @@ def cards_game(rows, columns, N): # modifies the list card_images to store the c
         card_images.append(image) 
     card_images *= 2 # duplicate the list to have 2 of each card.
     random.shuffle(card_images) # randomly shuffle the cards in the list.
-    return card_images
+    return card_images # length of card_images is N*2
 
 card_images1 = cards_game(3,4,6) # rows = 3; columns = 4; N = 6 (12 cards) -> Easy Level.
 card_images2 = cards_game(4,4,8)
 card_images3 = cards_game(4,5,10)
 
-# function to display the main game.
+# Function to display the main game:
 def display_game(screen, rows, columns, mouse_pos):
     screen.fill(light_pink)
     global card_back # to be able to access the global variable.
@@ -163,7 +167,9 @@ def display_game(screen, rows, columns, mouse_pos):
             screen.blit(card_back, card_rect) # actual drawing (copy) of the card image (card_back) into the game screen (screen), at the rectangle('card_rect') location. 
     settings_button.draw(screen, mouse_pos)
 
-def obtain_pos(rows, columns, card_images):    # obtain position of cards on the grid; will return a list of rectangles representing the cards.
+
+# Function to obtain position of each card in the grid:
+def obtain_pos(rows, columns, card_images) -> list:    # obtain position of cards on the grid; will return a list of rectangles representing the cards.
     cards =[] # to store all rectangles that represent cards.
     grid_size = (rows, columns)
     card_size = grid_width // grid_size[1], grid_height // grid_size[0] # size of each card.
@@ -176,8 +182,7 @@ def obtain_pos(rows, columns, card_images):    # obtain position of cards on the
             # to specify the position of this rectangle, use 'topleft' which specifies the top-left corner position of the card image.
             card_rect.topleft = (x*card_size[0],y*card_size[1]) # card_size[0] = width of each card; card_size[1] = height of each card.
             cards.append(card_rect)
-            # screen.blit(card, card_rect) # actual drawing (copy) of the card image (card) into the game screen (screen), at the rectangle('card_rect') location. 
-    return cards
+    return cards # length of cards is N*2
 
 cards1 = obtain_pos(3,4,card_images1)
 cards2 = obtain_pos(4,4,card_images2)
@@ -186,12 +191,14 @@ card_up1 = [False] * len(card_images1) # all cards are face down at first.
 card_up2 = [False] * len(card_images2) # all cards are face down at first.
 card_up3 = [False] * len(card_images3) # all cards are face down at first.
 
-def display_card(index, card_images, cards): # to flip the card selected by the user.
+# Function to display card (turn over a card selected by the user):
+def display_card(home_screen,index, card_images, cards): # to flip the card selected by the user.
             card = card_images[index]
             card_rect = cards[index] # get corresponding card's rectangle.
             home_screen.blit(card, card_rect) # drawing the card on the position defined by the rectangle 'card_rect'.
 
-def display_settings(screen, settings, selected_setting):
+# Function to display the settings screen:
+def display_settings(screen, settings, selected_setting, menu_font, game_font):
     screen.fill(light_pink)
     text = menu_font.render("Settings",True, pink)
     # get_rect creates a rectangle from the surface containing this text:
@@ -371,11 +378,11 @@ while running:
 
     # When no event occurs (when open the game):
     if game_state == "Menu":
-        display_menu(home_screen,menu_options,selected_option)
+        display_menu(home_screen,menu_options,selected_option, menu_font, game_font)
 
     elif game_state == "Play":
         # display game settings: choose the level of the game.
-        display_game_levels(home_screen, game_levels, selected_level)
+        display_game_levels(home_screen, game_levels, selected_level,font1, game_font, font2)
     elif game_state == "Play_Easy":
         if x == 1:
             card_images1 = cards_game(3,4,6) # rows = 3; columns = 4; N = 6 (12 cards) -> Easy Level.
@@ -386,7 +393,7 @@ while running:
         for i, card_rect in enumerate(cards1): # if the card was selected --> need to turn it around.
             if card_up1[i]: #this means card was selected.
             # need to turn the card face up.
-                display_card(i, card_images1,cards1)
+                display_card(home_screen,i, card_images1,cards1)
         if len(selected_cards) == 2: # two cards have been selected --> compare them.
             card1 = card_images1[selected_cards[0]] # store image of first card selected in 'card1'.
             card2 = card_images1[selected_cards[1]] # store image of second card selected in 'card2'.
@@ -420,7 +427,7 @@ while running:
         for i, card_rect in enumerate(cards2): # if the card was selected --> need to turn it around.
             if card_up2[i]: #this means card was selected.
             # need to turn the card face up.
-                display_card(i, card_images2,cards2)
+                display_card(home_screen,i, card_images2,cards2)
         if len(selected_cards) == 2: # two cards have been selected --> compare them.
             card1 = card_images2[selected_cards[0]] # store image of first card selected in 'card1'.
             card2 = card_images2[selected_cards[1]] # store image of second card selected in 'card2'.
@@ -451,7 +458,7 @@ while running:
         for i, card_rect in enumerate(cards3): # if the card was selected --> need to turn it around.
             if card_up3[i]: #this means card was selected.
             # need to turn the card face up.
-                display_card(i, card_images3,cards3)
+                display_card(home_screen,i, card_images3,cards3)
         if len(selected_cards) == 2: # two cards have been selected --> compare them.
             card1 = card_images3[selected_cards[0]] # store image of first card selected in 'card1'.
             card2 = card_images3[selected_cards[1]] # store image of second card selected in 'card2'.
@@ -473,9 +480,9 @@ while running:
             settings_button.draw(home_screen, mouse_position)
 
     elif game_state == "Settings":
-        display_settings(home_screen, settings, selected_setting)
+        display_settings(home_screen, settings, selected_setting, menu_font, game_font)
     elif game_state == "Rules":
-        display_rules(home_screen, mouse_position)
+        display_rules(home_screen, mouse_position, font1, font3)
     
     elif game_state == "Restart Game":
         home_screen.fill(light_pink)
