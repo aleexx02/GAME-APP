@@ -283,7 +283,7 @@ class SudokuGame:
                                 50 - 2 * self.buffer, 50 - 2 * self.buffer))
                             pygame.display.update()
                             mistakes += 1
-                            return
+                            pass
 
     def used_nums(self, grid, input):
         total = 0
