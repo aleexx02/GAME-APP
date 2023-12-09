@@ -4,9 +4,8 @@ CIS 350
 Minesweeper
 
 """
-
+# pylint: disable=no-member
 import sys
-import os
 import random
 import pygame
 
@@ -19,6 +18,8 @@ NUM_MINES = 10
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 PINK = (248, 200, 220)
+
+TESTING_MODE = False  # change to True for test grid
 
 # Initialize Pygame
 pygame.init()
@@ -41,7 +42,7 @@ bg_image = pygame.image.load("catpaw.jpg")
 bg_image = pygame.transform.scale(bg_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
 
-selected_level = 'Easy'
+SELECTED_LEVEL = 'Easy'
 
 MEDIUM_GRID_SIZE = 16
 MEDIUM_NUM_MINES = 40
@@ -55,11 +56,32 @@ grid = [[0 for _ in range(9)] for _ in range(9)]
 revealed = [[False for _ in range(9)] for _ in range(9)]
 mines = set()
 
-running_in_minesweeper_menu = True
+RUNNING_IN_MINESWEEPER_MENU = True
+
+
+def setup_predefined_mines(predefined_mines):
+    """
+    Sets up mines in specific, predefined locations on the grid.
+    This function is used for testing purposes to
+    create a predictable game state.
+
+    """
+    global mines
+    mines = set(predefined_mines)
+    for y in range(9):
+        for x in range(9):
+            grid[y][x] = -1 if (x, y) in mines else 0
+    for mine in mines:
+        update_adjacent_cells(*mine)
 
 
 def choose_level():
-    global selected_level
+    """
+    Displays a menu for the player to select the game's difficulty level.
+    The player can choose between Easy, Medium, Hard,
+    or go Back to the previous menu.
+    """
+    global SELECTED_LEVEL
     running_level_menu = True
     while running_level_menu:
         screen.blit(bg_image, (0, 0))
@@ -99,29 +121,44 @@ def choose_level():
                         if level_value == "Back":
                             running_level_menu = False
                         else:
-                            selected_level = level_value
+                            SELECTED_LEVEL = level_value
                             running_level_menu = False
 
         pygame.display.flip()
 
 
 def exit_to_main_menu():
-    global running_in_minesweeper_menu
-    running_in_minesweeper_menu = False
+    """"
+    Exits the current menu and returns to the main menu of the game.
+    """
+    global RUNNING_IN_MINESWEEPER_MENU
+    RUNNING_IN_MINESWEEPER_MENU = False
 
 
 def calculate_screen_size(grid_width, grid_height):
+    """
+    Calculates the pixel dimensions of the game window based on the grid size.
+
+    Args:
+    - grid_width: The width of the grid in number of cells.
+    - grid_height: The height of the grid in number of cells.
+    """
     width = grid_width * GRID_SIZE
     height = grid_height * GRID_SIZE
     return width, height
 
 
 def minesweeper_menu():
-    global running_in_minesweeper_menu, screen
+    """
+    Displays the main menu of the Minesweeper game.
+    Provides options to start the game, choose the difficulty level,
+    or exit to the main menu.
+    """
+    global screen
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-    running_in_minesweeper_menu = True
-    while running_in_minesweeper_menu:
+    RUNNING_IN_MINESWEEPER_MENU = True
+    while RUNNING_IN_MINESWEEPER_MENU:
         screen.blit(bg_image, (0, 0))
 
         options = [
@@ -164,13 +201,19 @@ GRID_HEIGHT = len(grid) * GRID_SIZE
 
 
 def generate_mines():
-    global mines
+    """
+    Randomly generates mine locations on the grid based
+    on the selected difficulty level.
+    The number and placement of mines vary with the difficulty level.
+    """
+    global grid, SELECTED_LEVEL
     mines.clear()
-    global selected_level
-    if selected_level == 'Easy':
+
+    # Initialize the grid size based on the selected difficulty level
+    if SELECTED_LEVEL == 'Easy':
         total_mines = NUM_MINES
         grid_width = grid_height = 9
-    elif selected_level == 'Medium':
+    elif SELECTED_LEVEL == 'Medium':
         total_mines = MEDIUM_NUM_MINES
         grid_width = grid_height = MEDIUM_GRID_SIZE
     else:  # 'Hard'
@@ -178,10 +221,13 @@ def generate_mines():
         grid_width = HARD_GRID_WIDTH
         grid_height = HARD_GRID_HEIGHT
 
+    # Initialize the grid with the correct dimensions
+    grid = [[0 for _ in range(grid_width)] for _ in range(grid_height)]
+
+    # Place mines randomly on the grid
     while len(mines) < total_mines:
         x = random.randint(0, grid_width - 1)
         y = random.randint(0, grid_height - 1)
-
         if (x, y) not in mines:
             mines.add((x, y))
             grid[y][x] = -1
@@ -200,15 +246,22 @@ def handle_tile_click(grid_x, grid_y):
     - True if the game is over (a mine was clicked), False otherwise.
     """
     # If the cell contains a mine
+    is_game_over = False
     if grid[grid_y][grid_x] == -1:
-        return True  # Game is over because a mine was clicked
-    # Otherwise, reveal the cell and its adjacent cells if necessary
-    game_over = not reveal_cell(grid_x, grid_y)
-
-    return game_over
+        is_game_over = True  # Game is over because a mine was clicked
+    else:
+        is_game_over = not reveal_cell(grid_x, grid_y)
+    return is_game_over
 
 
 def update_adjacent_cells(x, y):
+    """
+    Updates the number of adjacent mines for all cells around a given mine.
+
+    Args:
+    - x: The x-coordinate of the mine in the grid.
+    - y: The y-coordinate of the mine in the grid.
+    """
     for i in range(max(0, y - 1), min(len(grid), y + 2)):
         for j in range(max(0, x - 1), min(len(grid[0]), x + 2)):
             if grid[i][j] != -1:
@@ -216,6 +269,19 @@ def update_adjacent_cells(x, y):
 
 
 def reveal_cell(x, y):
+    """
+    Reveals the contents of a cell and recursively
+    reveals adjacent cells if needed.
+    If the cell is empty (no adjacent mines),
+    adjacent cells are also revealed.
+
+    Args:
+    - x: The x-coordinate of the cell in the grid.
+    - y: The y-coordinate of the cell in the grid.
+
+    Returns:
+    - True if the cell is not a mine, False otherwise.
+    """
     if not (0 <= x < len(grid[0]) and 0 <= y < len(grid)):
         return False
 
@@ -232,6 +298,13 @@ def reveal_cell(x, y):
 
 
 def has_player_won():
+    """
+    Checks if the player has won the game.
+    The player wins if all non-mine cells have been revealed.
+
+    Returns:
+    - True if the player has won, False otherwise.
+    """
     for y in range(len(grid)):
         for x in range(len(grid[0])):
             if not revealed[y][x] and grid[y][x] != -1:
@@ -239,7 +312,12 @@ def has_player_won():
     return True
 
 
-def draw_grid(screen, grid, revealed, mines, game_over):
+def draw_grid():
+    """
+    Draws the game grid on the screen.
+    This includes drawing each cell, mines,
+    and numbers indicating adjacent mines.
+    """
     grid_width = len(grid[0])
     grid_height = len(grid)
     grid_start_x = (screen.get_width() - grid_width * GRID_SIZE) // 2
@@ -265,19 +343,23 @@ def draw_grid(screen, grid, revealed, mines, game_over):
                 # Display the tile image for unrevealed tiles
                 screen.blit(tile_img, rect.topleft)
 
-    if game_over:
+    if GAME_OVER:
         for mine_x, mine_y in mines:
             mine_rect = pygame.Rect(grid_start_x + mine_x * GRID_SIZE,
                                     grid_start_y + mine_y *
                                     GRID_SIZE, GRID_SIZE, GRID_SIZE)
             screen.blit(mine_img, mine_rect.topleft)
 
-
-game_over = False  # Track if the game is over
+GAME_OVER = False  # Track if the game is over
 generate_mines()
 
 
 def display_end_message(message):
+    """
+    Displays a message box at the end of the game.
+    Shows a message indicating whether the player has won or
+    lost and provides options to replay or return to the main menu.
+    """
     current_screen_width, current_screen_height = (
         screen.get_size())  # Get the current window size
 
@@ -328,24 +410,28 @@ def display_end_message(message):
                     if rect.collidepoint(mouse_x, mouse_y):
                         if option_text == "Replay":
                             return run_minesweeper()
-                        elif option_text == "Back to Menu":
+                        if option_text == "Back to Menu":
                             return minesweeper_menu()
         pygame.display.flip()
 
 
 def run_minesweeper():
-    global grid, revealed, mines, game_over, screen, GRID_START_X, GRID_START_Y
-    pygame.mixer.music.load("Gameplay.mp3")
-    pygame.mixer.music.set_volume(0.3)
-    pygame.mixer.music.play(-1)
+    """
+    Main function to run the Minesweeper game.
+    Sets up the game, handles user input, and updates the game state.
+    """
+    global grid, revealed, mines, GAME_OVER, screen
+    if not pygame.mixer.music.get_busy():
+        pygame.mixer.music.load("Gameplay.mp3")
+        pygame.mixer.music.set_volume(0.3)
+        pygame.mixer.music.play(-1)
 
-    if selected_level == 'Easy':
+    if SELECTED_LEVEL == 'Easy':
         grid_width = grid_height = 9
-        NUM_MINES = 10
-    elif selected_level == 'Medium':
+    elif SELECTED_LEVEL == 'Medium':
         grid_width = grid_height = MEDIUM_GRID_SIZE
         NUM_MINES = MEDIUM_NUM_MINES
-    elif selected_level == 'Hard':
+    elif SELECTED_LEVEL == 'Hard':
         grid_width = HARD_GRID_WIDTH
         grid_height = HARD_GRID_HEIGHT
         NUM_MINES = HARD_NUM_MINES
@@ -353,8 +439,14 @@ def run_minesweeper():
     grid = [[0 for _ in range(grid_width)] for _ in range(grid_height)]
     revealed = [[False for _ in range(grid_width)] for _ in range(grid_height)]
     mines.clear()
-    game_over = False
-    generate_mines()
+    GAME_OVER = False
+
+    if TESTING_MODE:
+        predefined_mines = {(0, 2), (0, 8), (1, 1), (2, 0), (2, 3),
+                            (4, 4), (6, 1), (6, 5), (7, 4), (8, 4)}
+        setup_predefined_mines(predefined_mines)
+    else:
+        generate_mines()
 
     # Calculate and set the new window size for the game based on grid size
     new_screen_width, new_screen_height = (
@@ -363,15 +455,13 @@ def run_minesweeper():
         (new_screen_width, new_screen_height))
 
     # Recalculate GRID_START_X and GRID_START_Y for the new grid
-    GRID_START_X = (new_screen_width
-                    - grid_width * GRID_SIZE) // 2
-    GRID_START_Y = (new_screen_height
-                    - grid_height * GRID_SIZE) // 2
-
+    grid_start_x = (new_screen_width -
+                    grid_width * GRID_SIZE) // 2
+    grid_start_y = (new_screen_height -
+                    grid_height * GRID_SIZE) // 2
     # cooldown variable so it doesn't count menu click towards the game
     cooldown_duration = 500
     start_time = pygame.time.get_ticks()
-
     end_game = False
     while True:
         elapsed_time = pygame.time.get_ticks() - start_time
@@ -384,16 +474,16 @@ def run_minesweeper():
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     mouse_x, mouse_y = pygame.mouse.get_pos()
 
-                    if ((SCREEN_WIDTH // 2 - 100 <= mouse_x
-                         <= SCREEN_WIDTH // 2 + 100) and
-                            (SCREEN_HEIGHT // 2 <= mouse_y
-                             <= SCREEN_HEIGHT // 2 + 30)):
+                    if ((SCREEN_WIDTH // 2 - 100 <= mouse_x <=
+                         SCREEN_WIDTH // 2 + 100) and
+                            (SCREEN_HEIGHT // 2 <= mouse_y <=
+                             SCREEN_HEIGHT // 2 + 30)):
                         return run_minesweeper()
 
-                    if ((SCREEN_WIDTH // 2 - 100 <= mouse_x
-                         <= SCREEN_WIDTH // 2 + 100) and
-                            (SCREEN_HEIGHT // 2 + 50 <= mouse_y
-                             <= SCREEN_HEIGHT // 2 + 80)):
+                    if ((SCREEN_WIDTH // 2 - 100 <= mouse_x <=
+                         SCREEN_WIDTH // 2 + 100) and
+                            (SCREEN_HEIGHT // 2 + 50 <= mouse_y <=
+                             SCREEN_HEIGHT // 2 + 80)):
                         return minesweeper_menu()
 
         else:
@@ -404,33 +494,32 @@ def run_minesweeper():
                 elif (event.type == pygame.MOUSEBUTTONDOWN and
                       elapsed_time > cooldown_duration):
                     mouse_x, mouse_y = pygame.mouse.get_pos()
-                    grid_x = (mouse_x - GRID_START_X) // GRID_SIZE
-                    grid_y = (mouse_y - GRID_START_Y) // GRID_SIZE
+                    grid_x = (mouse_x - grid_start_x) // GRID_SIZE
+                    grid_y = (mouse_y - grid_start_y) // GRID_SIZE
 
                     if 0 <= grid_x < len(grid[0]) and 0 <= grid_y < len(grid):
-                        game_over = handle_tile_click(grid_x, grid_y)
-                        if game_over:
+                        GAME_OVER = handle_tile_click(grid_x, grid_y)
+                        if GAME_OVER:
                             end_game = True
                             screen.fill(BLACK)
-                            draw_grid(screen, grid, revealed, mines, game_over)
+                            draw_grid()
                             display_end_message("Game Over!")
                             pygame.display.flip()
 
                         elif has_player_won():
                             end_game = True
                             screen.fill(BLACK)
-                            draw_grid(screen, grid, revealed, mines, game_over)
+                            draw_grid()
                             display_end_message("You've won!")
                             pygame.display.flip()
-
         if not end_game:
             screen.fill(BLACK)
-            draw_grid(screen, grid, revealed, mines, game_over)
+            draw_grid()
             pygame.display.flip()
-        if game_over or has_player_won():
+        if GAME_OVER or has_player_won():
             pygame.mixer.music.stop()
-
 
 if __name__ == "__main__":
     minesweeper_menu()
+# pylint: enable=no-member
 
